@@ -8,10 +8,7 @@ import java.util.*;
  * @version 2017-12-02
  */
 class Vertex {
-
-    /** An array containing all vertices from the input file */
-    static Vertex[] vertices;
-
+    
     /**
      * A unique integer to identify this vertex
      */
@@ -30,6 +27,34 @@ class Vertex {
     /**
      * A list of the connected edges
      */
-    List<Edge> conEdges;
+    List<Edge> conEdges = new ArrayList<>();
 
+    /** 
+     * Constructs a vertex from text data 
+     * 
+     * @param lineNum The line number of the text file where this data is found
+     * @param line A line of text data
+     */
+    Vertex(int lineNum, String line){
+        
+        //fill in basic data
+        String[] data = line.split("[ ]+");
+        
+        id = lineNum;
+        name = data[0];
+        lat = Double.parseDouble(data[1]);
+        lon = Double.parseDouble(data[2]);
+    }
+    
+    /**
+     * Constructs a vertex with given latitude and longitude
+     * 
+     * @param la Latitude
+     * @param lo Longitude
+     */
+    Vertex(double la, double lo){
+        lat = la;
+        lon = lo;
+    }
+    
 }
