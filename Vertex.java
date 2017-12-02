@@ -28,7 +28,7 @@ class Vertex {
      * A list of the connected edges
      */
     List<Edge> conEdges = new ArrayList<>();
-
+    
     /** 
      * Constructs a vertex from text data 
      * 

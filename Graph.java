@@ -9,7 +9,7 @@ import java.util.*;
  * @version 2017-12-02
  */
 class Graph {
-
+    
     /**
      * Constructs a graph from a METAL text file
      *
@@ -18,7 +18,7 @@ class Graph {
     Graph(String fileName) throws FileNotFoundException {
 
         //init scanner
-        Scanner in = new Scanner(new File(fileName));
+        Scanner in = new Scanner(new File("./graphs/" + fileName));
 
         //skip header line
         in.nextLine();
@@ -26,6 +26,7 @@ class Graph {
         //get |V| and |E|
         int vertCount = in.nextInt();
         int edgeCount = in.nextInt();
+        in.nextLine();
         
         //array of vertices is needed to create edges
         Vertex[] vertices = new Vertex[vertCount];
@@ -40,6 +41,7 @@ class Graph {
         for(int e = 0; e < edgeCount; e++){
             Edge temp = new Edge(vertices, in.nextLine());
             temp.start.conEdges.add(temp);
+            temp.end.conEdges.add(temp.dupe);
         }
         
     }

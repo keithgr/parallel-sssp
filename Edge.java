@@ -36,6 +36,11 @@ class Edge implements Comparable<Edge> {
     double minDist = Double.MAX_VALUE;
 
     /**
+     * Mirrored duplicate of this edge
+     */
+    Edge dupe;
+    
+    /**
      * Constructs an edge from text data and connects them to their
      * corresponding vertices
      *
@@ -69,11 +74,8 @@ class Edge implements Comparable<Edge> {
         weight = routeDistance(shapingPoints);
 
         //create mirrored duplicate edge
-        Edge dupe = new Edge(name, end, start, weight);
-
-        //connect duplicate edge to end vertex
-        end.conEdges.add(dupe);
-
+        dupe = new Edge(name, end, start, weight);
+        dupe.dupe = this;
     }
 
     /**
@@ -91,6 +93,14 @@ class Edge implements Comparable<Edge> {
         weight = wt;
     }
 
+    /**
+     * Constructs a dummy edge for the initialization of the algorithm
+     */
+    Edge(Vertex src){
+        end = src;
+        minDist = 0.0;
+    }
+    
     /**
      * Computes the total distance along a direct route of given vertices
      *
