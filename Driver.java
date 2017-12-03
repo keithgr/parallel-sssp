@@ -15,6 +15,10 @@ public class Driver {
 
         Graph g = new Graph(args[0]);
 
+        //"NY80@CR25"
+        
+        //"A-15@NY/QC&I-87@NY/Can"
+        
         Vertex source = g.nameToVertex.get("A-15@NY/QC&I-87@NY/Can");
         Vertex dest = g.nameToVertex.get("NY27@OceAve");
 

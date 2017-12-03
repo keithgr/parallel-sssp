@@ -2,6 +2,8 @@
 import static java.lang.Math.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Uses a multi-threaded variant of Dijkstra's algorithm to compute the SSSP of
@@ -64,16 +66,16 @@ class ParallelDijkstra {
 
         //update vertex ids
         //determine which processes the vertices will be designated to
-        int partitionSize = g.vertices.length / threadCount;
         for (int i = 0; i < g.vertices.length; i++) {
             g.vertices[i].id = i;
-            g.vertices[i].pDeg = i / partitionSize;
+            g.vertices[i].pDeg = i * threadCount / g.vertices.length;
         }
 
         //create threads
         processes = new Process[threadCount];
         for (int p = 0; p < threadCount; p++) {
             processes[p] = new Process(src, solution, elas);
+            processes[p].id = p;
         }
 
         //link adjacent threads to each other
@@ -86,7 +88,12 @@ class ParallelDijkstra {
 
         //run threads
         for (int p = 0; p < threadCount; p++) {
-            processes[p].run();
+            processes[p].start();
+        }
+
+        //join threads
+        for (int p = 0; p < threadCount; p++) {
+            processes[p].join();
         }
 
         return solution;
@@ -96,8 +103,9 @@ class ParallelDijkstra {
      * A process will compute a wedge of the graph, centered at the source,
      * containing |V| / threadCount vertices
      */
-    private static class Process implements Runnable {
+    private static class Process extends Thread {
 
+        private int id;
         private Vertex src;
         private ConcurrentMap<Vertex, Edge> solution;
         private Queue<Edge> q;
@@ -112,17 +120,14 @@ class ParallelDijkstra {
             elasticity = elas;
 
             //create priority queue for edges
-            q = new PriorityQueue<>();
+            q = new PriorityBlockingQueue<>();
+
+            //create dummy edge
+            q.add(new Edge(src));
         }
 
         @Override
         public void run() {
-
-            //create dummy edge
-            q.add(new Edge(src));
-
-            //temporary value to save progress
-            double temp = 0.0;
 
             DONE:
             while (true) {
@@ -140,6 +145,11 @@ class ParallelDijkstra {
                     //then wait
                     while (min(left.progress, right.progress) + elasticity
                             < this.progress) {
+                        try {
+                            Process.sleep(3);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(ParallelDijkstra.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
 
                     //map next vertex to its last edge
@@ -165,7 +175,7 @@ class ParallelDijkstra {
                 //if process temporarily has no edges to compute
                 //then max out progress so that it does not interfere with
                 //neighbor processes
-                progress = 999_999_999.0;
+                progress = Double.MAX_VALUE;
 
                 while (q.isEmpty()) {
                     if (allProcessesDone()) {
@@ -174,7 +184,7 @@ class ParallelDijkstra {
                 }
             }
 
-        }//end run()
+        }//end run()       
 
     }//end Process
 
@@ -187,7 +197,7 @@ class ParallelDijkstra {
     private static boolean allProcessesDone() {
         boolean allDone = true;
         for (int p = 0; p < processes.length; p++) {
-            if (processes[p].progress < 999_999_998.0) {
+            if (processes[p].progress < Double.MAX_VALUE - 1.0) {
                 allDone = false;
             }
         }
