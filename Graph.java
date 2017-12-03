@@ -11,6 +11,11 @@ import java.util.*;
 class Graph {
     
     /**
+     * An array of all vertices
+     */
+    Vertex[] vertices;
+    
+    /**
      * A map from vertex name to its corresponding vertex
      */
     Map<String, Vertex> nameToVertex = new HashMap<>();
@@ -34,7 +39,7 @@ class Graph {
         in.nextLine();
         
         //array of vertices is needed to create edges
-        Vertex[] vertices = new Vertex[vertCount];
+        vertices = new Vertex[vertCount];
         
         //construct and store all vertices
         for(int v = 0; v < vertCount; v++){

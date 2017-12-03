@@ -16,12 +16,12 @@ class SerialDijkstra {
      * the source vertex
      *
      * @param g The graph to be computed on
-     * @param sourceName The label for the source vertex\
+     * @param sourceName The label for the source vertex
      *
      * @return A map of of each vertex to its last edge for its shortest path
      */
     static Map<Vertex, Edge> computeShortestPaths(Graph g, String sourceName) {
-        return computeShortestPaths(g.nameToVertex.get(sourceName));
+        return computeShortestPaths(g, g.nameToVertex.get(sourceName));
     }
 
     /**
@@ -31,7 +31,7 @@ class SerialDijkstra {
      *
      * @return A map of of each vertex to its last edge for its shortest path
      */
-    static Map<Vertex, Edge> computeShortestPaths(Vertex src) {
+    static Map<Vertex, Edge> computeShortestPaths(Graph g, Vertex src) {
 
         //create output hashmap
         Map<Vertex, Edge> solution = new HashMap<>();

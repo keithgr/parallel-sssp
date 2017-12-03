@@ -75,7 +75,7 @@ class Edge implements Comparable<Edge> {
 
         //create mirrored duplicate edge
         dupe = new Edge(name, end, start, weight);
-        dupe.dupe = this;
+
     }
 
     /**

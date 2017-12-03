@@ -1,4 +1,5 @@
 
+import static java.lang.Math.*;
 import java.util.*;
 
 /**
@@ -10,10 +11,16 @@ import java.util.*;
 class Vertex {
     
     /**
-     * A unique integer to identify this vertex
+     * A unique integer to identify this vertex's position in an array
      */
     int id;
 
+        /**
+     * A unique integer to identify the process that this vertex is designated
+     * to (ParallelDijkstra)
+     */
+    int pDeg;
+    
     /**
      * The name of the vertex
      */
@@ -55,6 +62,18 @@ class Vertex {
     Vertex(double la, double lo){
         lat = la;
         lon = lo;
+    }
+    
+    /**
+     * Computes the relative angle of a given angle, from a given source angle
+     * 
+     * @param src Source vertex
+     * @param v Other vertex
+     * 
+     * @return The relative angle
+     */
+    static double relativeAngleFromSrc(Vertex src, Vertex v){
+        return atan(v.lat - src.lat) / (v.lon - src.lon);
     }
     
     /**
