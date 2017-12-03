@@ -12,11 +12,26 @@ import java.util.*;
 class SerialDijkstra {
 
     /**
-     * Executes Dijkstra's algorithm on a graph, assign
+     * Executes Dijkstra's algorithm on a graph, given a graph and the name of
+     * the source vertex
+     *
+     * @param g The graph to be computed on
+     * @param sourceName The label for the source vertex\
+     *
+     * @return A map of of each vertex to its last edge for its shortest path
+     */
+    static Map<Vertex, Edge> computeShortestPaths(Graph g, String sourceName) {
+        return computeShortestPaths(g.nameToVertex.get(sourceName));
+    }
+
+    /**
+     * Executes Dijkstra's algorithm on a graph, given a source vertex
      *
      * @param src The source vertex from graph g
+     *
+     * @return A map of of each vertex to its last edge for its shortest path
      */
-    public static Map<Vertex, Edge> computeShortestPaths(Vertex src) {
+    static Map<Vertex, Edge> computeShortestPaths(Vertex src) {
 
         //create output hashmap
         Map<Vertex, Edge> solution = new HashMap<>();
@@ -50,7 +65,7 @@ class SerialDijkstra {
                     q.add(conEdge);
                 }
             }
-            
+
         }
 
         return solution;

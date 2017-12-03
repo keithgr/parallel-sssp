@@ -13,7 +13,7 @@ class Edge implements Comparable<Edge> {
     /**
      * Radius of the Earth (mi)
      */
-    public static final double RADIUS = 3_959.0;
+    static final double RADIUS = 3_959.0;
     
     /**
      * The name of the edge
@@ -105,13 +105,18 @@ class Edge implements Comparable<Edge> {
      * Computes the total distance along a direct route of given vertices
      *
      * @param sp The shaping points of the route
+     * 
+     * @return The distance that one must travel by traveliing around
+     * the globe 
      */
     private static double routeDistance(List<Vertex> sp) {
 
         double dist = 0.0;
         for (int p = 1; p < sp.size(); p++) {
-            double lat1 = sp.get(p - 1).lat, lon1 = sp.get(p - 1).lon,
-                    lat2 = sp.get(p).lat, lon2 = sp.get(p).lon;
+            double lat1 = toRadians(sp.get(p - 1).lat), 
+                    lon1 = toRadians(sp.get(p - 1).lon),
+                    lat2 = toRadians(sp.get(p).lat), 
+                    lon2 = toRadians(sp.get(p).lon);
             dist += acos(
                     sin(lat1) * sin(lat2) 
                             + cos(lat1) * cos(lat2) * cos(lon2 - lon1)

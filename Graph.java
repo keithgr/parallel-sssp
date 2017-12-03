@@ -11,6 +11,11 @@ import java.util.*;
 class Graph {
     
     /**
+     * A map from vertex name to its corresponding vertex
+     */
+    Map<String, Vertex> nameToVertex = new HashMap<>();
+    
+    /**
      * Constructs a graph from a METAL text file
      *
      * @param fileName The file name
@@ -34,6 +39,7 @@ class Graph {
         //construct and store all vertices
         for(int v = 0; v < vertCount; v++){
             vertices[v] = new Vertex(v, in.nextLine());
+            nameToVertex.put(vertices[v].name, vertices[v]);
         }
         
         //construct all edges

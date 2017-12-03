@@ -57,4 +57,12 @@ class Vertex {
         lon = lo;
     }
     
+    /**
+     * @return A string for a vertex in METAL format
+     */
+    @Override
+    public String toString(){
+        return name + " " + lat + " " + lon;
+    }
+    
 }
