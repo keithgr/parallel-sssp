@@ -16,15 +16,13 @@ public class Driver {
         Graph g = new Graph(args[0]);
 
         //"NY80@CR25"
-        
         //"A-15@NY/QC&I-87@NY/Can"
-        
+        //"NY27@OceAve"
         Vertex source = g.nameToVertex.get("A-15@NY/QC&I-87@NY/Can");
         Vertex dest = g.nameToVertex.get("NY27@OceAve");
 
-        ConcurrentMap<Vertex, Edge> m = ParallelDijkstra.computeShortestPaths(
-                g, g.nameToVertex.get("A-15@NY/QC&I-87@NY/Can"),
-                10.0, 2);
+        //Map<Vertex, Edge> m = SerialDijkstra.computeShortestPaths(g, source);
+        ConcurrentMap<Vertex, Edge> m = ParallelDijkstra.computeShortestPaths(g, source, 10.0, 2);
 
         double dist = m.get(dest).minDist;
 

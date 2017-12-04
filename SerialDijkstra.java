@@ -54,8 +54,16 @@ class SerialDijkstra {
             //update progress
             progress = nextEdge.minDist;
 
-            //map next vertex to its last edge
+            //next vertex is the end of last edge
             Vertex nextVert = nextEdge.end;
+
+            //System.out.println(nextEdge.name + " " + nextVert.name + " " + progress);
+            //skip if vertex has already been solved
+            if (solution.containsKey(nextVert)) {
+                continue;
+            }
+
+            //map vertex to solution
             solution.put(nextVert, nextEdge);
 
             //add all edges that lead to unsolved vertices

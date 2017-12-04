@@ -1,5 +1,4 @@
 
-import static java.lang.Math.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -32,7 +31,8 @@ class ParallelDijkstra {
      *
      * @return A map of of each vertex to its last edge for its shortest path
      */
-    static ConcurrentMap<Vertex, Edge> computeShortestPaths(Graph g, String sourceName,
+    static ConcurrentMap<Vertex, Edge> computeShortestPaths(
+            Graph g, String sourceName,
             double elas, int threadCount) throws InterruptedException {
         return computeShortestPaths(g, g.nameToVertex.get(sourceName),
                 elas, threadCount);
@@ -64,6 +64,9 @@ class ParallelDijkstra {
         //sort vertices by comparator
         Arrays.sort(g.vertices, byAngle);
 
+        //compute number of vertices that are connected to source
+        int vertCount = g.countVertices(src);
+
         //update vertex ids
         //determine which processes the vertices will be designated to
         for (int i = 0; i < g.vertices.length; i++) {
@@ -74,8 +77,7 @@ class ParallelDijkstra {
         //create threads
         processes = new Process[threadCount];
         for (int p = 0; p < threadCount; p++) {
-            processes[p] = new Process(src, solution, elas);
-            processes[p].id = p;
+            processes[p] = new Process(g, src, solution, vertCount, p, elas);
         }
 
         //link adjacent threads to each other
@@ -84,6 +86,15 @@ class ParallelDijkstra {
                     = processes[(p == 0 ? processes.length - 1 : p - 1)];
             processes[p].right
                     = processes[(p == processes.length - 1 ? 0 : p + 1)];
+        }
+
+        //map src vertex
+        solution.put(src, new Edge(src));
+
+        //add edges around the src
+        for (Edge conEdge : src.conEdges) {
+            conEdge.minDist = conEdge.weight;
+            processes[conEdge.end.pDeg].q.add(conEdge);
         }
 
         //run threads
@@ -105,84 +116,79 @@ class ParallelDijkstra {
      */
     private static class Process extends Thread {
 
-        private int id;
+        private Graph g;
         private Vertex src;
         private ConcurrentMap<Vertex, Edge> solution;
-        private Queue<Edge> q;
+        private final Queue<Edge> q;
+        private int vertCount;
+
+        private int id;
         private double elasticity;
 
         private double progress = 0.0;
         private Process left, right;
 
-        private Process(Vertex s, ConcurrentMap<Vertex, Edge> sol, double elas) {
+        private Process(Graph g, Vertex s, ConcurrentMap<Vertex, Edge> sol,
+                int vCount, int i, double elas) {
+
+            //init basic fields
+            this.g = g;
             src = s;
             solution = sol;
+            vertCount = vCount;
+
+            id = i;
             elasticity = elas;
 
             //create priority queue for edges
             q = new PriorityBlockingQueue<>();
-
-            //create dummy edge
-            q.add(new Edge(src));
         }
 
         @Override
         public void run() {
 
-            DONE:
-            while (true) {
+            //the next edge
+            Edge nextEdge;
 
-                //main loop
-                while (!q.isEmpty()) {
+            //main loop
+            while (solution.keySet().size() < vertCount) {
+
+                //ensure that only one thread may access q at one time
+                synchronized (q) {
 
                     //get next edge
-                    Edge nextEdge = q.remove();
+                    if (!q.isEmpty()) {
+                        nextEdge = q.remove();
+                    } else {
+                        continue;
+                    }
 
                     //update progress
                     progress = nextEdge.minDist;
 
-                    //if this process is too far ahead of a neighbor
-                    //then wait
-                    while (min(left.progress, right.progress) + elasticity
-                            < this.progress) {
-                        try {
-                            Process.sleep(3);
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(ParallelDijkstra.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-
-                    //map next vertex to its last edge
+                    //next vertex is the end of last edge
                     Vertex nextVert = nextEdge.end;
 
-                    //concurrency of map 
-                    //ensures that only one process accesses the solutions
-                    //map at one time
-                    solution.putIfAbsent(nextVert, nextEdge);
+                    //System.out.println(id + " " + nextEdge.name + " " + nextVert.name + " " + progress);
+                    //skip if vertex has already been solved
+                    if (solution.containsKey(nextVert)) {
+                        continue;
+                    }
+
+                    //map vertex to solution
+                    solution.put(nextVert, nextEdge);
 
                     //add all edges that lead to unsolved vertices
-                    //edge must be added to appropriate priority queue
                     for (Edge conEdge : nextVert.conEdges) {
                         if (!solution.containsKey(conEdge.end)) {
                             conEdge.minDist = progress + conEdge.weight;
-                            Vertex conEnd = conEdge.end;
-                            processes[conEnd.pDeg].q.add(conEdge);
+                            processes[conEdge.end.pDeg].q.add(conEdge);
                         }
                     }
 
-                }//end main loop
-
-                //if process temporarily has no edges to compute
-                //then max out progress so that it does not interfere with
-                //neighbor processes
-                progress = Double.MAX_VALUE;
-
-                while (q.isEmpty()) {
-                    if (allProcessesDone()) {
-                        break DONE;
-                    }
                 }
-            }
+
+            }//end main loop
 
         }//end run()       
 
@@ -197,7 +203,7 @@ class ParallelDijkstra {
     private static boolean allProcessesDone() {
         boolean allDone = true;
         for (int p = 0; p < processes.length; p++) {
-            if (processes[p].progress < Double.MAX_VALUE - 1.0) {
+            if (processes[p].progress != Double.MAX_VALUE) {
                 allDone = false;
             }
         }
