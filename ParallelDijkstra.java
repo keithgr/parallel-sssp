@@ -1,8 +1,7 @@
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import static java.lang.Math.*;
 
 /**
  * Uses a multi-threaded variant of Dijkstra's algorithm to compute the SSSP of
@@ -153,13 +152,12 @@ class ParallelDijkstra {
             //main loop
             while (solution.keySet().size() < vertCount) {
 
-                //ensure that only one thread may access q at one time
-                synchronized (q) {
-
                     //get next edge
-                    if (!q.isEmpty()) {
+                    if (!q.isEmpty() && q.peek().minDist < min(left.progress, right.progress) + elasticity) {
                         nextEdge = q.remove();
                     } else {
+                        //ignore progress for suspended threads
+                        progress = 999_999_999.0;
                         continue;
                     }
 
@@ -168,8 +166,7 @@ class ParallelDijkstra {
 
                     //next vertex is the end of last edge
                     Vertex nextVert = nextEdge.end;
-
-                    //System.out.println(id + " " + nextEdge.name + " " + nextVert.name + " " + progress);
+                    
                     //skip if vertex has already been solved
                     if (solution.containsKey(nextVert)) {
                         continue;
@@ -185,8 +182,6 @@ class ParallelDijkstra {
                             processes[conEdge.end.pDeg].q.add(conEdge);
                         }
                     }
-
-                }
 
             }//end main loop
 
